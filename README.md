@@ -1,30 +1,85 @@
-# Full Stack Professional
+# Speech Practice App
 
-Enrol [here](https://amigoscode.com/courses/full-stack-professional) with over *50 Hours* of Content with Plenty of Exercises
+A full-stack web application with a Spring Boot backend and React frontend, deployed on AWS Elastic Beanstalk.
 
-![Curriculum](https://user-images.githubusercontent.com/40702606/228275106-73076517-ff4f-40e0-a993-4d05d5a2ea77.png)
+## Architecture
 
-Are you ready to level up your coding skills and become a full stack professional? Our new 50+ hours course is designed to equip you with the latest tools and techniques to build impressive, full stack applications that will impress the users and your team.
+```
+┌─────────────────────────────────────────────────────────┐
+│                        Client                           │
+│                  React + Vite (JS)                      │
+└───────────────────────┬─────────────────────────────────┘
+                        │ HTTP / JWT
+┌───────────────────────▼─────────────────────────────────┐
+│               Spring Boot 3 (port 8080)                 │
+│                                                         │
+│  Security Filter Chain                                  │
+│  ├── JWTAuthenticationFilter                            │
+│  └── Spring Security 6                                  │
+│                                                         │
+│  REST Layer                                             │
+│  ├── AuthenticationController  (/api/v1/auth)           │
+│  ├── CustomerController        (/api/v1/customers)      │
+│  └── PingPongController        (/ping-pong)             │
+│                                                         │
+│  Service Layer                                          │
+│  ├── AuthenticationService                              │
+│  └── CustomerService                                    │
+│                                                         │
+│  Data Access (DAO pattern)                              │
+│  ├── CustomerJPADataAccessService                       │
+│  ├── CustomerJDBCDataAccessService                      │
+│  └── CustomerListDataAccessService  (in-memory/test)    │
+│                                                         │
+│  Integrations                                           │
+│  └── S3Service  (AWS S3 — mocked locally)               │
+└───────────┬───────────────────────┬─────────────────────┘
+            │ JDBC / JPA            │ AWS SDK
+┌───────────▼──────────┐  ┌─────────▼────────────────────┐
+│  PostgreSQL (5332)   │  │  AWS S3                      │
+│  Flyway migrations   │  │  Bucket: speech-practice-app │
+│  docker-compose.yml  │  │  Region: eu-west-1           │
+└──────────────────────┘  └──────────────────────────────┘
+```
 
-Over the next three months you will learn how to craft stunning, responsive front-end interfaces that flawlessly communicate with robust, scalable back-end servers, all with the use of industry-standard technologies such as:
+## Tech Stack
 
-- ✅ Spring Boot 3
-- ✅ HTTP & API development
-- ✅ Developer tools for maximum productivity
-- ✅ Robust error handling techniques
-- ✅ Databases & PostgreSQL
-- ✅ Spring Data JPA
-- ✅ Flyway for seamless database migrations
-- ✅ JDBC for efficient database communication
-- ✅ Testing strategies for robust, reliable code
-- ✅ Docker for containerization and deployment
-- ✅ AWS for cloud-based hosting and scaling
-- ✅ DevOps best practices for agile, collaborative development
-- ✅ JavaScript and React for front-end development
-- ✅ Spring Security 6 for secure, authenticated applications
-- ✅ Login/Registration systems for user management
-- ✅ TypeScript for type-safe, scalable code
-- ✅ Angular for powerful, responsive front-end interfaces
+| Layer | Technology |
+|---|---|
+| Backend | Spring Boot 3, Spring Security 6, Spring Data JPA |
+| Auth | JWT (jjwt 0.11.5), BCrypt |
+| Database | PostgreSQL 14, Flyway migrations |
+| Storage | AWS S3 |
+| Frontend | React, Vite |
+| Containerization | Docker, Docker Compose |
+| CI/CD | GitHub Actions |
+| Cloud | AWS Elastic Beanstalk (eu-west-1) |
+| Build | Maven, Google Jib (Docker image push) |
 
-🎁 Bonus 6-Month IntelliJ IDEA Ultimate license worth 117.83$
+## Local Development
 
+**Prerequisites:** Java 17, Docker
+
+1. Start PostgreSQL:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Run the backend:
+   ```bash
+   cd backend && mvn spring-boot:run
+   ```
+   API available at `http://localhost:8080`
+
+3. Run the frontend:
+   ```bash
+   cd frontend/react && npm install && npm run dev
+   ```
+
+## CI/CD
+
+| Workflow | Trigger | Action |
+|---|---|---|
+| `backend-ci.yml` | Push to `backend/**` | Build, test, verify |
+| `backend-cd.yml` | Push to `main` (`backend/**`) | Build → push Docker image → deploy to Elastic Beanstalk |
+| `frontend-react-cd.yml` | Push to `main` (`frontend/react/**`) | Build → push Docker image → deploy |
