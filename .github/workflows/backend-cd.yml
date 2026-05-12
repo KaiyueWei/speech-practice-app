@@ -65,9 +65,8 @@ jobs:
         run: mvn -ntp -B verify -Ddocker.image.tag=${{steps.build-number.outputs.BUILD_NUMBER}} jib:dockerBuild
       - name: Push Docker image
         run: |
-          docker images
-          docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/speech-practice-app:${{steps.build-number.outputs.BUILD_NUMBER}}
-          docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/speech-practice-app:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/speech-practice-app:${{steps.build-number.outputs.BUILD_NUMBER}}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/speech-practice-app:latest
       - name: Send Slack Message
         run: >
           curl -X POST -H 'Content-type: application/json' 
