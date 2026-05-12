@@ -218,14 +218,10 @@
                         <image>eclipse-temurin:17</image>
                     </from>
                     <to>
-                        <image>docker.io/${docker.username}/${docker.image.name}:${docker.image.tag}</image>
+                        <image>${docker.username}/${docker.image.name}:${docker.image.tag}</image>
                         <tags>
                             <tag>latest</tag>
                         </tags>
-                        <auth>
-                            <username>${jib.to.auth.username}</username>
-                            <password>${jib.to.auth.password}</password>
-                        </auth>
                     </to>
                 </configuration>
             </plugin>
