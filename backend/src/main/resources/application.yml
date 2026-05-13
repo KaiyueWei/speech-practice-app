@@ -10,11 +10,15 @@ cors:
   exposed-headers: "*"
 
 aws:
-  region: eu-west-1
+  region: ${AWS_REGION:eu-west-1}
   s3:
     mock: true
     buckets:
       customer: speech-practice-app-customer
+      sessions: ${S3_BUCKET:speech-practice-app}
+
+huggingface:
+  token: ${HF_TOKEN:placeholder}
 
 management:
   endpoints:
@@ -23,6 +27,15 @@ management:
         include: "health,info"
 
 spring:
+  kafka:
+    bootstrap-servers: ${MSK_BOOTSTRAP:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      group-id: speech-app
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+  # spring.ai.openai config added in Phase 4 alongside spring-ai-starter-openai
   datasource:
     url: jdbc:postgresql://localhost:5332/customer
     username: admin

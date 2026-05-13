@@ -21,7 +21,10 @@
     "react-dropzone": "^14.2.3",
     "react-icons": "^4.7.1",
     "react-router-dom": "^6.8.0",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "@stomp/stompjs": "^7.0.0",
+    "sockjs-client": "^1.6.1",
+    "recharts": "^2.10.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",

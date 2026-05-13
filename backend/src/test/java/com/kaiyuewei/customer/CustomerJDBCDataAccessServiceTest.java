@@ -1,3 +1,5 @@
+
+
 package com.kaiyuewei.customer;
 
 import com.kaiyuewei.AbstractTestcontainers;
@@ -302,6 +304,7 @@ class CustomerJDBCDataAccessServiceTest extends AbstractTestcontainers {
         // Given
         String email = FAKER.internet().safeEmailAddress() + "-" + UUID.randomUUID();
         Customer customer = new Customer(
+
                 FAKER.name().fullName(),
                 email,
                 "password", 20,
