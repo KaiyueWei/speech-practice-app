@@ -20,6 +20,9 @@ aws:
 huggingface:
   token: ${HF_TOKEN:placeholder}
 
+jwt:
+  secret: ${JWT_SECRET}
+
 management:
   endpoints:
     web:

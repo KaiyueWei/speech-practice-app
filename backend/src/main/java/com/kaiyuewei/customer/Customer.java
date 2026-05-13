@@ -209,7 +209,6 @@ public class Customer implements UserDetails {
                 ", email='" + email + '\'' +
                 ", age=" + age +
                 ", gender=" + gender +
-                ", password='" + password + '\'' +
                 ", profileImageId='" + profileImageId + '\'' +
                 '}';
     }

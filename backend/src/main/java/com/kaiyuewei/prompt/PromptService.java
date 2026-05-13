@@ -1,6 +1,8 @@
 package com.kaiyuewei.prompt;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -14,6 +16,7 @@ public class PromptService {
         this.promptMapper = promptMapper;
     }
 
+    @Transactional(readOnly = true)
     public List<PromptResponseDto> getPromptsByMode(PromptMode mode) {
         return promptRepository.findByMode(mode).stream()
                 .map(promptMapper::toDto)

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,18 +38,21 @@ public class SessionService {
         session.setUser(customer);
         session.setStatus(SessionStatus.RECORDING);
         session.setAudioS3Key(s3Key);
-        OffsetDateTime now = OffsetDateTime.now();
-        session.setCreatedAt(now);
-        session.setUpdatedAt(now);
         Session saved = sessionRepository.save(session);
         String uploadUrl = presignedUrlService.generatePutUrl(s3Key, UPLOAD_URL_EXPIRY);
         return new SessionCreateResponse(saved.getId(), uploadUrl);
     }
 
+    @Transactional
     public void markRecorded(Long sessionId, Customer customer) {
         Session session = sessionRepository.findByIdAndUserId(sessionId, customer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Session not found: " + sessionId));
+        if (session.getStatus() != SessionStatus.RECORDING) {
+            throw new IllegalStateException(
+                    "Session " + sessionId + " is not in RECORDING state (was "
+                            + session.getStatus() + ")");
+        }
         kafkaTemplate.send(KAFKA_TOPIC, String.valueOf(sessionId),
                 new SessionRecordedEvent(sessionId, session.getAudioS3Key()));
     }
@@ -60,7 +63,7 @@ public class SessionService {
                 .map(s -> new SessionSummaryDto(
                         s.getId(),
                         s.getStatus(),
-                        s.getPrompt() != null ? s.getPrompt().getText() : null,
+                        Optional.ofNullable(s.getPrompt()).map(p -> p.getText()).orElse(null),
                         s.getCreatedAt()
                 ));
     }
@@ -70,17 +73,17 @@ public class SessionService {
         Session session = sessionRepository.findWithDetail(sessionId, customer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Session not found: " + sessionId));
-        Transcript t = session.getTranscript();
-        Feedback f = session.getFeedback();
+        Optional<Transcript> transcript = Optional.ofNullable(session.getTranscript());
+        Optional<Feedback> feedback = Optional.ofNullable(session.getFeedback());
         return new SessionDetailDto(
                 session.getId(),
                 session.getStatus(),
-                session.getPrompt() != null ? session.getPrompt().getText() : null,
-                t != null ? t.getText() : null,
-                t != null ? t.getWpm() : null,
-                t != null ? t.getFillerWords() : null,
-                f != null ? f.getScores() : null,
-                f != null ? f.getBullets() : null,
+                Optional.ofNullable(session.getPrompt()).map(p -> p.getText()).orElse(null),
+                transcript.map(Transcript::getText).orElse(null),
+                transcript.map(Transcript::getWpm).orElse(null),
+                transcript.map(Transcript::getFillerWords).orElse(null),
+                feedback.map(Feedback::getScores).orElse(null),
+                feedback.map(Feedback::getBullets).orElse(null),
                 session.getCreatedAt()
         );
     }

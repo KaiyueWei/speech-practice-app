@@ -1,7 +1,9 @@
 package com.kaiyuewei.auth;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record AuthenticationRequest(
-        String username,
-        String password
+        @NotBlank String username,
+        @NotBlank String password
 ) {
 }

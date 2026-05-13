@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -52,6 +53,7 @@ public class CustomerService {
                 ));
     }
 
+    @Transactional
     public void addCustomer(CustomerRegistrationRequest customerRegistrationRequest) {
         // check if email exists
         String email = customerRegistrationRequest.email();
@@ -72,6 +74,7 @@ public class CustomerService {
         customerDao.insertCustomer(customer);
     }
 
+    @Transactional
     public void deleteCustomerById(Integer customerId) {
         checkIfCustomerExistsOrThrow(customerId);
         customerDao.deleteCustomerById(customerId);
@@ -85,6 +88,7 @@ public class CustomerService {
         }
     }
 
+    @Transactional
     public void updateCustomer(Integer customerId,
                                CustomerUpdateRequest updateRequest) {
         // TODO: for JPA use .getReferenceById(customerId) as it does does not bring object into memory and instead a reference
@@ -122,6 +126,7 @@ public class CustomerService {
         customerDao.updateCustomer(customer);
     }
 
+    @Transactional
     public void uploadCustomerProfileImage(Integer customerId,
                                            MultipartFile file) {
         checkIfCustomerExistsOrThrow(customerId);

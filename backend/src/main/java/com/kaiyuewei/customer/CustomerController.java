@@ -1,7 +1,9 @@
 package com.kaiyuewei.customer;
 
 import com.kaiyuewei.jwt.JWTUtil;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +37,10 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<?> registerCustomer(
-            @RequestBody CustomerRegistrationRequest request) {
+            @Valid @RequestBody CustomerRegistrationRequest request) {
         customerService.addCustomer(request);
         String jwtToken = jwtUtil.issueToken(request.email(), "ROLE_USER");
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .build();
     }
@@ -52,7 +54,7 @@ public class CustomerController {
     @PutMapping("{customerId}")
     public void updateCustomer(
             @PathVariable("customerId") Integer customerId,
-            @RequestBody CustomerUpdateRequest updateRequest) {
+            @Valid @RequestBody CustomerUpdateRequest updateRequest) {
         customerService.updateCustomer(customerId, updateRequest);
     }
 

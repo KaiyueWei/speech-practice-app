@@ -12,14 +12,18 @@ import java.time.Duration;
 @Service
 public class S3PresignedUrlService implements PresignedUrlService {
 
-    @Value("${aws.s3.mock}")
-    private boolean mock;
+    private final boolean mock;
+    private final String awsRegion;
+    private final String sessionsBucket;
 
-    @Value("${aws.region}")
-    private String awsRegion;
-
-    @Value("${aws.s3.buckets.sessions}")
-    private String sessionsBucket;
+    public S3PresignedUrlService(
+            @Value("${aws.s3.mock}") boolean mock,
+            @Value("${aws.region}") String awsRegion,
+            @Value("${aws.s3.buckets.sessions}") String sessionsBucket) {
+        this.mock = mock;
+        this.awsRegion = awsRegion;
+        this.sessionsBucket = sessionsBucket;
+    }
 
     public String generatePutUrl(String key, Duration expiry) {
         if (mock) {

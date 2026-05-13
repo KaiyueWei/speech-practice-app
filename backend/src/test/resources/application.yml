@@ -1,0 +1,2 @@
+jwt:
+  secret: test_signing_key_at_least_32_bytes_long_for_HS256_xxxxxxxxx

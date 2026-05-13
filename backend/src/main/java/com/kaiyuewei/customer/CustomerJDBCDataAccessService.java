@@ -1,5 +1,7 @@
 package com.kaiyuewei.customer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -8,6 +10,8 @@ import java.util.Optional;
 
 @Repository("jdbc")
 public class CustomerJDBCDataAccessService implements CustomerDao {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomerJDBCDataAccessService.class);
 
     private final JdbcTemplate jdbcTemplate;
     private final CustomerRowMapper customerRowMapper;
@@ -56,7 +60,7 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                 customer.getGender().name()
         );
 
-        System.out.println("insertCustomer result " + result);
+        log.debug("insert_customer rows={}", result);
     }
 
     @Override
@@ -89,7 +93,7 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                 WHERE id = ?
                 """;
         int result = jdbcTemplate.update(sql, customerId);
-        System.out.println("deleteCustomerById result = " + result);
+        log.debug("delete_customer id={} rows={}", customerId, result);
     }
 
     @Override
@@ -101,7 +105,7 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                     update.getName(),
                     update.getId()
             );
-            System.out.println("update customer name result = " + result);
+            log.debug("update_customer_name id={} rows={}", update.getId(), result);
         }
         if (update.getAge() != null) {
             String sql = "UPDATE customer SET age = ? WHERE id = ?";
@@ -110,7 +114,7 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                     update.getAge(),
                     update.getId()
             );
-            System.out.println("update customer age result = " + result);
+            log.debug("update_customer_age id={} rows={}", update.getId(), result);
         }
         if (update.getEmail() != null) {
             String sql = "UPDATE customer SET email = ? WHERE id = ?";
@@ -118,7 +122,7 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                     sql,
                     update.getEmail(),
                     update.getId());
-            System.out.println("update customer email result = " + result);
+            log.debug("update_customer_email id={} rows={}", update.getId(), result);
         }
     }
 
