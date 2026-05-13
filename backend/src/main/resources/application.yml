@@ -19,6 +19,30 @@ aws:
 
 huggingface:
   token: ${HF_TOKEN:placeholder}
+  whisper:
+    url: ${WHISPER_URL:https://api-inference.huggingface.co/models/openai/whisper-large-v3}
+    max-attempts: 3
+    retry-delay: PT5S
+
+llm:
+  timeout: PT15S
+  groq:
+    url: ${GROQ_URL:https://api.groq.com/openai/v1/chat/completions}
+    token: ${GROQ_API_KEY:placeholder}
+    model: mixtral-8x7b-32768
+  hf:
+    url: ${HF_MISTRAL_URL:https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2}
+  prompt:
+    template: |
+      You are a public speaking coach. Analyze the following transcript and
+      return ONLY a valid JSON object with this exact shape, no prose:
+      {"scores": {"clarity": <0-100>, "structure": <0-100>, "delivery": <0-100>},
+       "bullets": [{"type": "positive|warning|tip", "text": "..."}]}
+
+      Existing analysis: {{scores}}
+
+      Transcript:
+      {{transcript}}
 
 jwt:
   secret: ${JWT_SECRET}
