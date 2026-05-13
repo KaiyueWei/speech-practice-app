@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class S3Buckets {
 
     private String customer;
+    private String sessions;
 
     public String getCustomer() {
         return customer;
@@ -15,5 +16,13 @@ public class S3Buckets {
 
     public void setCustomer(String customer) {
         this.customer = customer;
+    }
+
+    public String getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(String sessions) {
+        this.sessions = sessions;
     }
 }
