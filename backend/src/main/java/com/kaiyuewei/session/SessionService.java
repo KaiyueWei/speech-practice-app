@@ -1,5 +1,8 @@
 package com.kaiyuewei.session;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaiyuewei.customer.Customer;
 import com.kaiyuewei.exception.ResourceNotFoundException;
 import com.kaiyuewei.s3.PresignedUrlService;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,17 +23,24 @@ public class SessionService {
 
     static final String KAFKA_TOPIC = "session.recorded";
     private static final Duration UPLOAD_URL_EXPIRY = Duration.ofMinutes(15);
+    private static final TypeReference<Map<String, Integer>> STRING_INT_MAP =
+            new TypeReference<>() {};
+    private static final TypeReference<List<FeedbackBullet>> BULLET_LIST =
+            new TypeReference<>() {};
 
     private final SessionRepository sessionRepository;
     private final PresignedUrlService presignedUrlService;
     private final KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     public SessionService(SessionRepository sessionRepository,
                           PresignedUrlService presignedUrlService,
-                          KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate) {
+                          KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate,
+                          ObjectMapper objectMapper) {
         this.sessionRepository = sessionRepository;
         this.presignedUrlService = presignedUrlService;
         this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -81,10 +93,26 @@ public class SessionService {
                 Optional.ofNullable(session.getPrompt()).map(p -> p.getText()).orElse(null),
                 transcript.map(Transcript::getText).orElse(null),
                 transcript.map(Transcript::getWpm).orElse(null),
-                transcript.map(Transcript::getFillerWords).orElse(null),
-                feedback.map(Feedback::getScores).orElse(null),
-                feedback.map(Feedback::getBullets).orElse(null),
+                transcript.map(Transcript::getFillerWords).map(this::parseStringIntMap).orElse(null),
+                feedback.map(Feedback::getScores).map(this::parseStringIntMap).orElse(null),
+                feedback.map(Feedback::getBullets).map(this::parseBullets).orElse(null),
                 session.getCreatedAt()
         );
+    }
+
+    private Map<String, Integer> parseStringIntMap(String json) {
+        try {
+            return objectMapper.readValue(json, STRING_INT_MAP);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Invalid JSON in session payload: " + json, e);
+        }
+    }
+
+    private List<FeedbackBullet> parseBullets(String json) {
+        try {
+            return objectMapper.readValue(json, BULLET_LIST);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Invalid JSON in session payload: " + json, e);
+        }
     }
 }

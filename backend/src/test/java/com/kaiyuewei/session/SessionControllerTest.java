@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,7 +106,10 @@ SessionControllerTest {
         Customer customer = mockCustomer();
         var detail = new SessionDetailDto(
                 1L, SessionStatus.SCORED, "Tell me about yourself",
-                "I am a software engineer", 120, "{}", "{}", "[]",
+                "I am a software engineer", 120,
+                Map.of("um", 3),
+                Map.of("clarity", 85, "pace", 72),
+                List.of(new FeedbackBullet("positive", "Strong opening")),
                 OffsetDateTime.now()
         );
         when(sessionService.getSessionDetail(1L, customer)).thenReturn(detail);
@@ -113,7 +117,11 @@ SessionControllerTest {
         mockMvc.perform(get(URL + "/1").with(authentication(authFor(customer))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.transcriptText").value("I am a software engineer"))
-                .andExpect(jsonPath("$.scores").exists())
+                .andExpect(jsonPath("$.fillerWords.um").value(3))
+                .andExpect(jsonPath("$.scores.clarity").value(85))
+                .andExpect(jsonPath("$.scores.pace").value(72))
+                .andExpect(jsonPath("$.bullets[0].type").value("positive"))
+                .andExpect(jsonPath("$.bullets[0].text").value("Strong opening"))
                 .andExpect(jsonPath("$.status").value("SCORED"));
     }
 

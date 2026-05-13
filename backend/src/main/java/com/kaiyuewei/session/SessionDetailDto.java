@@ -1,6 +1,8 @@
 package com.kaiyuewei.session;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 
 public record SessionDetailDto(
         Long id,
@@ -8,8 +10,8 @@ public record SessionDetailDto(
         String promptText,
         String transcriptText,
         Integer wpm,
-        String fillerWords,
-        String scores,
-        String bullets,
+        Map<String, Integer> fillerWords,
+        Map<String, Integer> scores,
+        List<FeedbackBullet> bullets,
         OffsetDateTime createdAt
 ) {}

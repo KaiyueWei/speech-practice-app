@@ -1,5 +1,6 @@
 package com.kaiyuewei.session;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaiyuewei.customer.Customer;
 import com.kaiyuewei.customer.Gender;
 import com.kaiyuewei.exception.ResourceNotFoundException;
@@ -37,7 +38,7 @@ class SessionServiceTest {
 
     @BeforeEach
     void setUp() {
-        sessionService = new SessionService(sessionRepository, presignedUrlService, kafkaTemplate);
+        sessionService = new SessionService(sessionRepository, presignedUrlService, kafkaTemplate, new ObjectMapper());
     }
 
     // --- createSession ---
