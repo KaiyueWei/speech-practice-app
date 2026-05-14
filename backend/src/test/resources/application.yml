@@ -1,2 +1,48 @@
 jwt:
   secret: test_signing_key_at_least_32_bytes_long_for_HS256_xxxxxxxxx
+
+cors:
+  allowed-origins: "*"
+  allowed-methods: "*"
+  allowed-headers: "*"
+  exposed-headers: "*"
+
+aws:
+  region: eu-west-1
+  s3:
+    mock: true
+    buckets:
+      customer: test-customer-bucket
+      sessions: test-sessions-bucket
+
+huggingface:
+  token: test-hf-token
+  whisper:
+    url: http://localhost/whisper
+    max-attempts: 1
+    retry-delay: PT0.01S
+
+spring:
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      auto-offset-reset: earliest
+      group-id: speech-app
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.kaiyuewei.*"
+
+llm:
+  timeout: PT2S
+  groq:
+    url: http://localhost/groq
+    token: test-groq-token
+    model: test-model
+  hf:
+    url: http://localhost/hf
+  prompt:
+    template: |
+      Test template: {{transcript}} / {{scores}}

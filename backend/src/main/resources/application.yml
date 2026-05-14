@@ -56,9 +56,16 @@ management:
 spring:
   kafka:
     bootstrap-servers: ${MSK_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       auto-offset-reset: earliest
       group-id: speech-app
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.kaiyuewei.*"
   data:
     redis:
       url: ${REDIS_URL:redis://localhost:6379}
