@@ -29,7 +29,7 @@ llm:
   groq:
     url: ${GROQ_URL:https://api.groq.com/openai/v1/chat/completions}
     token: ${GROQ_API_KEY:placeholder}
-    model: mixtral-8x7b-32768
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
   hf:
     url: ${HF_MISTRAL_URL:https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2}
   prompt:

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaiyuewei.customer.Customer;
 import com.kaiyuewei.exception.ResourceNotFoundException;
 import com.kaiyuewei.s3.PresignedUrlService;
+import com.kaiyuewei.s3.S3Buckets;
+import com.kaiyuewei.s3.S3Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,15 +34,21 @@ public class SessionService {
     private final PresignedUrlService presignedUrlService;
     private final KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final S3Service s3Service;
+    private final S3Buckets s3Buckets;
 
     public SessionService(SessionRepository sessionRepository,
                           PresignedUrlService presignedUrlService,
                           KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          S3Service s3Service,
+                          S3Buckets s3Buckets) {
         this.sessionRepository = sessionRepository;
         this.presignedUrlService = presignedUrlService;
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
+        this.s3Service = s3Service;
+        this.s3Buckets = s3Buckets;
     }
 
     @Transactional
@@ -51,8 +59,16 @@ public class SessionService {
         session.setStatus(SessionStatus.RECORDING);
         session.setAudioS3Key(s3Key);
         Session saved = sessionRepository.save(session);
-        String uploadUrl = presignedUrlService.generatePutUrl(s3Key, UPLOAD_URL_EXPIRY);
+        String uploadUrl = presignedUrlService.generatePutUrl(saved.getId(), s3Key, UPLOAD_URL_EXPIRY);
         return new SessionCreateResponse(saved.getId(), uploadUrl);
+    }
+
+    @Transactional(readOnly = true)
+    public void uploadAudio(Long sessionId, byte[] audio, Customer customer) {
+        Session session = sessionRepository.findByIdAndUserId(sessionId, customer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Session not found: " + sessionId));
+        s3Service.putObject(s3Buckets.getSessions(), session.getAudioS3Key(), audio);
     }
 
     @Transactional

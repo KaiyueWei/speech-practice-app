@@ -3,5 +3,5 @@ package com.kaiyuewei.s3;
 import java.time.Duration;
 
 public interface PresignedUrlService {
-    String generatePutUrl(String key, Duration expiry);
+    String generatePutUrl(Long sessionId, String key, Duration expiry);
 }

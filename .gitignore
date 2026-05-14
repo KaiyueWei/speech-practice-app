@@ -4,6 +4,13 @@
 **/.DS_Store
 **/*.iml
 
+# Local secrets — never commit
+.env
+.env.local
+.envrc
+**/application-local.yml
+**/application-local.yaml
+
 # Javascript
 
 # Logs

@@ -5,7 +5,11 @@ const INITIAL = { status: 'idle', feedback: null }
 function reducer(state, action) {
   switch (action.type) {
     case 'START_RECORDING':
-      return state.status === 'idle' ? { ...state, status: 'recording' } : state
+      // Allow starting from any terminal-ish state so the user can record again
+      // after a completed or stalled session without manual reset.
+      return state.status === 'recording'
+        ? state
+        : { status: 'recording', feedback: null }
     case 'STOP_RECORDING':
       return state.status === 'recording' ? { ...state, status: 'transcribing' } : state
     case 'SET_FEEDBACK':

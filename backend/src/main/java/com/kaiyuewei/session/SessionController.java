@@ -32,6 +32,14 @@ public class SessionController {
         sessionService.markRecorded(id, customer);
     }
 
+    @PutMapping("{id}/audio")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uploadAudio(@PathVariable Long id,
+                            @RequestBody byte[] audio,
+                            @AuthenticationPrincipal Customer customer) {
+        sessionService.uploadAudio(id, audio, customer);
+    }
+
     @GetMapping
     public Page<SessionSummaryDto> getSessions(
             @AuthenticationPrincipal Customer customer,

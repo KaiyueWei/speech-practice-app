@@ -34,11 +34,19 @@ class SessionServiceTest {
     @Mock
     private KafkaTemplate<String, SessionRecordedEvent> kafkaTemplate;
 
+    @Mock
+    private com.kaiyuewei.s3.S3Service s3Service;
+
+    private com.kaiyuewei.s3.S3Buckets s3Buckets;
+
     private SessionService sessionService;
 
     @BeforeEach
     void setUp() {
-        sessionService = new SessionService(sessionRepository, presignedUrlService, kafkaTemplate, new ObjectMapper());
+        s3Buckets = new com.kaiyuewei.s3.S3Buckets();
+        s3Buckets.setSessions("test-bucket");
+        sessionService = new SessionService(sessionRepository, presignedUrlService, kafkaTemplate,
+                new ObjectMapper(), s3Service, s3Buckets);
     }
 
     // --- createSession ---
@@ -49,8 +57,8 @@ class SessionServiceTest {
         Session savedSession = new Session();
         savedSession.setId(99L);
         when(sessionRepository.save(any(Session.class))).thenReturn(savedSession);
-        when(presignedUrlService.generatePutUrl(anyString(), any(Duration.class)))
-                .thenReturn("http://localhost:9000/bucket/key?mock=presigned");
+        when(presignedUrlService.generatePutUrl(anyLong(), anyString(), any(Duration.class)))
+                .thenReturn("/api/v1/sessions/99/audio");
 
         SessionCreateResponse result = sessionService.createSession(customer);
 

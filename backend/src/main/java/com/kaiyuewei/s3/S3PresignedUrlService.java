@@ -25,9 +25,12 @@ public class S3PresignedUrlService implements PresignedUrlService {
         this.sessionsBucket = sessionsBucket;
     }
 
-    public String generatePutUrl(String key, Duration expiry) {
+    public String generatePutUrl(Long sessionId, String key, Duration expiry) {
         if (mock) {
-            return "http://localhost:9000/" + sessionsBucket + "/" + key + "?mock=presigned";
+            // Local dev: no HTTP-addressable S3 (FakeS3 is filesystem-only).
+            // Route the PUT through a backend endpoint that writes via S3Service.
+            // Relative URL so the frontend uses its own origin (Vite proxy → backend).
+            return "/api/v1/sessions/" + sessionId + "/audio";
         }
         try (S3Presigner presigner = S3Presigner.builder()
                 .region(Region.of(awsRegion))

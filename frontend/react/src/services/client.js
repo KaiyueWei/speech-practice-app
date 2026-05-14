@@ -98,7 +98,13 @@ export const markSessionRecorded = async (sessionId) => {
 }
 
 export const uploadAudioToPresignedUrl = async (uploadUrl, blob) => {
+    // For real S3 presigned URLs the Authorization header is harmless (signature
+    // is in query string). For local mock mode the URL points back at our own
+    // /api/v1/sessions/{id}/audio endpoint which requires JWT auth.
     return await axios.put(uploadUrl, blob, {
-        headers: { 'Content-Type': blob.type || 'audio/webm' }
+        headers: {
+            'Content-Type': blob.type || 'audio/webm',
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
     })
 }

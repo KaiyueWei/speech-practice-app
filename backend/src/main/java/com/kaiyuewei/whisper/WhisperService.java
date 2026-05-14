@@ -37,7 +37,7 @@ public class WhisperService {
         return webClient.post()
                 .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(MediaType.parseMediaType("audio/webm"))
                 .bodyValue(audio)
                 .retrieve()
                 .bodyToMono(WhisperResponse.class)
