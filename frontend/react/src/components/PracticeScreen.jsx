@@ -97,7 +97,7 @@ export default function PracticeScreen({ initialTopics }) {
           <button type="button" onClick={retry}>Retry</button>
         </div>
       )}
-      {feedback?.transcript && <TranscriptView text={feedback.transcript} />}
+      {feedback?.transcriptText && <TranscriptView text={feedback.transcriptText} />}
       {status === 'done' && feedback && (
         <FeedbackPanel scores={feedback.scores} bullets={feedback.bullets} />
       )}

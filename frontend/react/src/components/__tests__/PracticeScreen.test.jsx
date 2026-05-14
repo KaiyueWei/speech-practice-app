@@ -9,7 +9,7 @@ const TOPICS = [
 ]
 
 const mockFeedbackMessage = {
-  transcript: 'I um overcame the challenge well',
+  transcriptText: 'I um overcame the challenge well',
   scores: { clarity: 80, pace: 70, structure: 75 },
   bullets: [
     { type: 'positive', text: 'Clear structure' },
