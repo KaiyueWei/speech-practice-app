@@ -85,6 +85,18 @@ public class SessionService {
         Session session = sessionRepository.findWithDetail(sessionId, customer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Session not found: " + sessionId));
+        return toDetailDto(session);
+    }
+
+    @Transactional(readOnly = true)
+    public SessionDetailDto getSessionDetailById(Long sessionId) {
+        Session session = sessionRepository.findWithDetailById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Session not found: " + sessionId));
+        return toDetailDto(session);
+    }
+
+    private SessionDetailDto toDetailDto(Session session) {
         Optional<Transcript> transcript = Optional.ofNullable(session.getTranscript());
         Optional<Feedback> feedback = Optional.ofNullable(session.getFeedback());
         return new SessionDetailDto(

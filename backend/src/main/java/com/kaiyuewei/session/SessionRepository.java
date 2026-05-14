@@ -26,4 +26,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         WHERE s.id = :id AND s.user.id = :userId
         """)
     Optional<Session> findWithDetail(@Param("id") Long id, @Param("userId") Integer userId);
+
+    @Query("""
+        SELECT s FROM Session s
+        LEFT JOIN FETCH s.transcript
+        LEFT JOIN FETCH s.feedback
+        LEFT JOIN FETCH s.prompt
+        WHERE s.id = :id
+        """)
+    Optional<Session> findWithDetailById(@Param("id") Long id);
 }
