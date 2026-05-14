@@ -15,8 +15,11 @@ export function useWebSocket({ sessionId }) {
   useEffect(() => {
     if (!sessionId) return undefined
 
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null
+
     const client = new Client({
       webSocketFactory: () => new SockJS('/ws'),
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
     })
 
     clientRef.current = client

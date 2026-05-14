@@ -5,6 +5,7 @@ import com.kaiyuewei.AbstractTestcontainers;
 import com.kaiyuewei.customer.Customer;
 import com.kaiyuewei.customer.CustomerRepository;
 import com.kaiyuewei.customer.Gender;
+import com.kaiyuewei.jwt.JWTUtil;
 import com.kaiyuewei.llm.FeedbackReadyEvent;
 import com.kaiyuewei.session.Feedback;
 import com.kaiyuewei.websocket.FeedbackWebSocketConsumer;
@@ -25,6 +26,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -33,6 +35,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -54,6 +57,7 @@ class FeedbackWebSocketIT extends AbstractTestcontainers {
     @Autowired private FeedbackRepository feedbackRepository;
     @Autowired private FeedbackWebSocketConsumer feedbackWebSocketConsumer;
     @Autowired private ObjectMapper objectMapper;
+    @Autowired private JWTUtil jwtUtil;
 
     @Test
     void stompClient_receivesSessionDetailDto_afterFeedbackReadyEvent() throws Exception {
@@ -87,8 +91,13 @@ class FeedbackWebSocketIT extends AbstractTestcontainers {
 
         LinkedBlockingDeque<SessionDetailDto> received = new LinkedBlockingDeque<>();
 
+        String jwt = jwtUtil.issueToken(customer.getUsername(), "ROLE_USER");
+        StompHeaders connectHeaders = new StompHeaders();
+        connectHeaders.add("Authorization", "Bearer " + jwt);
+
         StompSession stompSession = stompClient
                 .connectAsync("ws://localhost:" + port + "/ws/websocket",
+                        new WebSocketHttpHeaders(), connectHeaders,
                         new StompSessionHandlerAdapter() {})
                 .get(5, TimeUnit.SECONDS);
 
@@ -119,6 +128,23 @@ class FeedbackWebSocketIT extends AbstractTestcontainers {
         assertThat(dto.bullets().get(0).type()).isEqualTo("positive");
 
         stompSession.disconnect();
+        stompClient.stop();
+    }
+
+    @Test
+    void stompClient_connectWithoutAuthHeader_isRejected() {
+        WebSocketStompClient stompClient = new WebSocketStompClient(new StandardWebSocketClient());
+        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+        converter.setObjectMapper(objectMapper);
+        stompClient.setMessageConverter(converter);
+
+        assertThatThrownBy(() -> stompClient
+                .connectAsync("ws://localhost:" + port + "/ws/websocket",
+                        new StompSessionHandlerAdapter() {})
+                .get(5, TimeUnit.SECONDS))
+                .hasMessageContaining("ConnectionLostException")
+                .as("unauthenticated CONNECT should be rejected by the interceptor");
+
         stompClient.stop();
     }
 }

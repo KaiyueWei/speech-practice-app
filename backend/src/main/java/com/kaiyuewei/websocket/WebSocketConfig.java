@@ -2,6 +2,7 @@ package com.kaiyuewei.websocket;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -14,10 +15,13 @@ import java.util.List;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final List<String> allowedOrigins;
+    private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
 
     public WebSocketConfig(
-            @Value("#{'${cors.allowed-origins}'.split(',')}") List<String> allowedOrigins) {
+            @Value("#{'${cors.allowed-origins}'.split(',')}") List<String> allowedOrigins,
+            StompAuthChannelInterceptor stompAuthChannelInterceptor) {
         this.allowedOrigins = allowedOrigins;
+        this.stompAuthChannelInterceptor = stompAuthChannelInterceptor;
     }
 
     @Override
@@ -31,5 +35,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(allowedOrigins.toArray(new String[0]))
                 .withSockJS();
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompAuthChannelInterceptor);
     }
 }
