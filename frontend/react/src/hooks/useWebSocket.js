@@ -13,6 +13,8 @@ export function useWebSocket({ sessionId }) {
   const retryTimerRef = useRef(null)
 
   useEffect(() => {
+    if (!sessionId) return undefined
+
     const client = new Client({
       webSocketFactory: () => new SockJS('/ws'),
     })

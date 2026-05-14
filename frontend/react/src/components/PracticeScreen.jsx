@@ -1,7 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useMediaRecorder } from '../hooks/useMediaRecorder'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { useSessionFlow } from '../hooks/useSessionFlow'
+import {
+  createSession,
+  markSessionRecorded,
+  uploadAudioToPresignedUrl,
+} from '../services/client'
 import TopicCard from './TopicCard'
 import FrameworkHints from './FrameworkHints'
 import RecordingSession from './RecordingSession'
@@ -11,12 +16,27 @@ import FeedbackPanel from './FeedbackPanel'
 export default function PracticeScreen({ initialTopics }) {
   const [topics] = useState(initialTopics)
   const [currentTopic, setCurrentTopic] = useState(topics[0] ?? null)
-  const [sessionId] = useState(() => `session-${Date.now()}`)
+  const [sessionId, setSessionId] = useState(null)
+  const uploadUrlRef = useRef(null)
+  const sessionIdRef = useRef(null)
 
   const { status, feedback, startRecording, stopRecording, setFeedback } = useSessionFlow()
 
+  const handleRecordingFinalized = useCallback(async (blob) => {
+    stopRecording()
+    const uploadUrl = uploadUrlRef.current
+    const currentSessionId = sessionIdRef.current
+    if (!uploadUrl || !currentSessionId) return
+    try {
+      await uploadAudioToPresignedUrl(uploadUrl, blob)
+      await markSessionRecorded(currentSessionId)
+    } catch (err) {
+      console.error('Failed to upload recording or mark recorded', err)
+    }
+  }, [stopRecording])
+
   const { start, stop, isRecording, permissionError } = useMediaRecorder({
-    onStop: () => stopRecording(),
+    onStop: handleRecordingFinalized,
   })
 
   const { feedbackMessage } = useWebSocket({ sessionId })
@@ -33,9 +53,17 @@ export default function PracticeScreen({ initialTopics }) {
     setCurrentTopic(next)
   }, [topics])
 
-  const handleRecord = useCallback(() => {
-    startRecording()
-    start()
+  const handleRecord = useCallback(async () => {
+    try {
+      const session = await createSession()
+      uploadUrlRef.current = session.uploadUrl
+      sessionIdRef.current = session.sessionId
+      setSessionId(session.sessionId)
+      startRecording()
+      start()
+    } catch (err) {
+      console.error('Failed to create session', err)
+    }
   }, [startRecording, start])
 
   const handleStop = useCallback(() => {

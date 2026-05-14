@@ -79,3 +79,26 @@ export const uploadCustomerProfilePicture = async (id, formData) => {
 
 export const customerProfilePictureUrl = (id) =>
     `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers/${id}/profile-image`;
+
+export const createSession = async () => {
+    const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions`,
+        null,
+        getAuthConfig()
+    )
+    return response.data
+}
+
+export const markSessionRecorded = async (sessionId) => {
+    return await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions/${sessionId}/recorded`,
+        null,
+        getAuthConfig()
+    )
+}
+
+export const uploadAudioToPresignedUrl = async (uploadUrl, blob) => {
+    return await axios.put(uploadUrl, blob, {
+        headers: { 'Content-Type': blob.type || 'audio/webm' }
+    })
+}
