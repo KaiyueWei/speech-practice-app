@@ -46,11 +46,15 @@ vi.mock('../../hooks/useMediaRecorder', () => ({
 }))
 
 let mockMediaOnStop = null
+let mockIsTimedOut = false
+let mockRetry = vi.fn()
 
 vi.mock('../../hooks/useWebSocket', () => ({
   useWebSocket: vi.fn(() => ({
     feedbackMessage: mockFeedback,
     isConnected: true,
+    isTimedOut: mockIsTimedOut,
+    retry: mockRetry,
   })),
 }))
 
@@ -59,6 +63,8 @@ describe('PracticeScreen', () => {
     mockIsRecording = false
     mockPermissionError = false
     mockFeedback = null
+    mockIsTimedOut = false
+    mockRetry.mockReset()
     mockStart.mockReset()
     mockStop.mockReset()
     mockCreateSession.mockClear()
@@ -98,6 +104,14 @@ describe('PracticeScreen', () => {
 
     expect(mockUpload).toHaveBeenCalledWith('https://s3/up', blob)
     expect(mockMarkRecorded).toHaveBeenCalledWith(42)
+  })
+
+  it('shows retry button when WS is timed out and clicking it calls retry()', async () => {
+    mockIsTimedOut = true
+    render(<PracticeScreen initialTopics={TOPICS} />)
+    const button = screen.getByRole('button', { name: /retry/i })
+    await userEvent.click(button)
+    expect(mockRetry).toHaveBeenCalled()
   })
 
   it('shows "Microphone access denied" when permissionError is true', () => {

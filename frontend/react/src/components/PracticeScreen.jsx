@@ -39,7 +39,7 @@ export default function PracticeScreen({ initialTopics }) {
     onStop: handleRecordingFinalized,
   })
 
-  const { feedbackMessage } = useWebSocket({ sessionId })
+  const { feedbackMessage, isTimedOut, retry } = useWebSocket({ sessionId })
 
   useEffect(() => {
     if (feedbackMessage && (status === 'recording' || status === 'transcribing')) {
@@ -91,6 +91,12 @@ export default function PracticeScreen({ initialTopics }) {
         onStop={handleStop}
         barHeights={Array(80).fill(0)}
       />
+      {isTimedOut && (
+        <div className="ws-timeout">
+          <span>No feedback received. Connection may be stalled.</span>
+          <button type="button" onClick={retry}>Retry</button>
+        </div>
+      )}
       {feedback?.transcript && <TranscriptView text={feedback.transcript} />}
       {status === 'done' && feedback && (
         <FeedbackPanel scores={feedback.scores} bullets={feedback.bullets} />

@@ -102,6 +102,50 @@ describe('useWebSocket', () => {
     expect(result.current.isConnected).toBe(false)
   })
 
+  it('isTimedOut becomes true after 60s of no message', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useWebSocket({ sessionId: 'sess-t1' }))
+
+    act(() => { getMockClient().onConnect?.() })
+    expect(result.current.isTimedOut).toBe(false)
+
+    act(() => { vi.advanceTimersByTime(60_000) })
+    expect(result.current.isTimedOut).toBe(true)
+
+    vi.useRealTimers()
+  })
+
+  it('timeout does not fire if a message arrives within 60s', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useWebSocket({ sessionId: 'sess-t2' }))
+
+    act(() => { getMockClient().onConnect?.() })
+    act(() => { vi.advanceTimersByTime(30_000) })
+    act(() => {
+      getSubscribeCallbacks()['/topic/feedback/sess-t2']?.({ body: '{}' })
+    })
+    act(() => { vi.advanceTimersByTime(60_000) })
+
+    expect(result.current.isTimedOut).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('retry() clears isTimedOut and reactivates the client', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useWebSocket({ sessionId: 'sess-t3' }))
+
+    act(() => { getMockClient().onConnect?.() })
+    act(() => { vi.advanceTimersByTime(60_000) })
+    expect(result.current.isTimedOut).toBe(true)
+
+    const activatesBeforeRetry = getMockClient().activate.mock.calls.length
+    act(() => { result.current.retry() })
+
+    expect(result.current.isTimedOut).toBe(false)
+    expect(getMockClient().activate.mock.calls.length).toBe(activatesBeforeRetry + 1)
+    vi.useRealTimers()
+  })
+
   it('reconnects with exponential backoff on STOMP error', () => {
     vi.useFakeTimers()
     const { result } = renderHook(() => useWebSocket({ sessionId: 'sess-err' }))
