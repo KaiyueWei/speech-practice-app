@@ -28,8 +28,10 @@ public class SessionController {
     @PatchMapping("{id}/recorded")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void markRecorded(@PathVariable Long id,
+                             @RequestBody(required = false) MarkRecordedRequest request,
                              @AuthenticationPrincipal Customer customer) {
-        sessionService.markRecorded(id, customer);
+        Integer duration = request == null ? null : request.durationSeconds();
+        sessionService.markRecorded(id, customer, duration);
     }
 
     @PutMapping("{id}/audio")

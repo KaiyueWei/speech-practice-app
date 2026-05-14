@@ -27,8 +27,8 @@ class LlmFeedbackServiceTest {
         wireMock.start();
         service = new LlmFeedbackService(
                 WebClient.builder(),
-                wireMock.baseUrl() + GROQ_PATH, "groq-token", "mixtral-8x7b",
-                wireMock.baseUrl() + HF_PATH, "hf-token",
+                wireMock.baseUrl() + GROQ_PATH, "groq-token", "test-groq-model",
+                wireMock.baseUrl() + HF_PATH, "test-hf-model", "hf-token",
                 Duration.ofMillis(200));
     }
 
@@ -54,7 +54,7 @@ class LlmFeedbackServiceTest {
         wireMock.stubFor(post(urlEqualTo(GROQ_PATH))
                 .willReturn(aResponse().withFixedDelay(2000).withStatus(200)));
         wireMock.stubFor(post(urlEqualTo(HF_PATH))
-                .willReturn(okJson("[{\"generated_text\":\"HF RESULT\"}]")));
+                .willReturn(okJson("{\"choices\":[{\"message\":{\"content\":\"HF RESULT\"}}]}")));
 
         String result = service.generate("any prompt");
 
@@ -67,7 +67,7 @@ class LlmFeedbackServiceTest {
         wireMock.stubFor(post(urlEqualTo(GROQ_PATH))
                 .willReturn(aResponse().withStatus(500)));
         wireMock.stubFor(post(urlEqualTo(HF_PATH))
-                .willReturn(okJson("[{\"generated_text\":\"HF SECOND\"}]")));
+                .willReturn(okJson("{\"choices\":[{\"message\":{\"content\":\"HF SECOND\"}}]}")));
 
         String result = service.generate("any prompt");
 

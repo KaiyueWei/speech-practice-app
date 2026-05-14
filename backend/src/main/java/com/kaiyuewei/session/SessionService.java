@@ -72,7 +72,7 @@ public class SessionService {
     }
 
     @Transactional
-    public void markRecorded(Long sessionId, Customer customer) {
+    public void markRecorded(Long sessionId, Customer customer, Integer durationSeconds) {
         Session session = sessionRepository.findByIdAndUserId(sessionId, customer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Session not found: " + sessionId));
@@ -80,6 +80,10 @@ public class SessionService {
             throw new IllegalStateException(
                     "Session " + sessionId + " is not in RECORDING state (was "
                             + session.getStatus() + ")");
+        }
+        if (durationSeconds != null && durationSeconds > 0) {
+            session.setDurationSeconds(durationSeconds);
+            sessionRepository.save(session);
         }
         kafkaTemplate.send(KAFKA_TOPIC, String.valueOf(sessionId),
                 new SessionRecordedEvent(sessionId, session.getAudioS3Key()));

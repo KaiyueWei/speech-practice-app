@@ -84,7 +84,7 @@ class SessionServiceTest {
         session.setAudioS3Key("sessions/1/abc.webm");
         when(sessionRepository.findByIdAndUserId(42L, 1)).thenReturn(Optional.of(session));
 
-        sessionService.markRecorded(42L, customer);
+        sessionService.markRecorded(42L, customer, null);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<SessionRecordedEvent> captor = ArgumentCaptor.forClass(SessionRecordedEvent.class);
@@ -94,11 +94,27 @@ class SessionServiceTest {
     }
 
     @Test
+    void markRecorded_withDuration_persistsDurationBeforePublish() {
+        Customer customer = new Customer(1, "Test", "test@test.com", "pass", 25, Gender.MALE);
+        Session session = new Session();
+        session.setId(42L);
+        session.setUser(customer);
+        session.setStatus(SessionStatus.RECORDING);
+        session.setAudioS3Key("sessions/1/abc.webm");
+        when(sessionRepository.findByIdAndUserId(42L, 1)).thenReturn(Optional.of(session));
+
+        sessionService.markRecorded(42L, customer, 8);
+
+        assertThat(session.getDurationSeconds()).isEqualTo(8);
+        verify(sessionRepository).save(session);
+    }
+
+    @Test
     void markRecorded_sessionNotFound_throwsResourceNotFoundException() {
         Customer customer = new Customer(1, "Test", "test@test.com", "pass", 25, Gender.MALE);
         when(sessionRepository.findByIdAndUserId(99L, 1)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.markRecorded(99L, customer))
+        assertThatThrownBy(() -> sessionService.markRecorded(99L, customer, null))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

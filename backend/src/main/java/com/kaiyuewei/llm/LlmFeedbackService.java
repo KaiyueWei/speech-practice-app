@@ -23,6 +23,7 @@ public class LlmFeedbackService {
     private final String groqToken;
     private final String groqModel;
     private final String hfUrl;
+    private final String hfModel;
     private final String hfToken;
     private final Duration timeout;
 
@@ -30,8 +31,9 @@ public class LlmFeedbackService {
             WebClient.Builder builder,
             @Value("${llm.groq.url:https://api.groq.com/openai/v1/chat/completions}") String groqUrl,
             @Value("${llm.groq.token:placeholder}") String groqToken,
-            @Value("${llm.groq.model:mixtral-8x7b-32768}") String groqModel,
-            @Value("${llm.hf.url:https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2}") String hfUrl,
+            @Value("${llm.groq.model:llama-3.3-70b-versatile}") String groqModel,
+            @Value("${llm.hf.url:https://router.huggingface.co/v1/chat/completions}") String hfUrl,
+            @Value("${llm.hf.model:mistralai/Mistral-7B-Instruct-v0.2}") String hfModel,
             @Value("${huggingface.token:placeholder}") String hfToken,
             @Value("${llm.timeout:PT15S}") Duration timeout) {
         this.webClient = builder.build();
@@ -39,6 +41,7 @@ public class LlmFeedbackService {
         this.groqToken = groqToken;
         this.groqModel = groqModel;
         this.hfUrl = hfUrl;
+        this.hfModel = hfModel;
         this.hfToken = hfToken;
         this.timeout = timeout;
     }
@@ -53,12 +56,21 @@ public class LlmFeedbackService {
     }
 
     private String callGroq(String prompt) {
+        return callChatCompletions(groqUrl, groqToken, groqModel, prompt, "Groq");
+    }
+
+    private String callHf(String prompt) {
+        return callChatCompletions(hfUrl, hfToken, hfModel, prompt, "HF Mistral");
+    }
+
+    private String callChatCompletions(String url, String token, String model,
+                                       String prompt, String provider) {
         Map<String, Object> body = Map.of(
-                "model", groqModel,
+                "model", model,
                 "messages", List.of(Map.of("role", "user", "content", prompt)));
         JsonNode root = webClient.post()
-                .uri(groqUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + groqToken)
+                .uri(url)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .retrieve()
@@ -67,24 +79,8 @@ public class LlmFeedbackService {
         JsonNode content = root == null ? null
                 : root.path("choices").path(0).path("message").path("content");
         if (content == null || content.isMissingNode() || content.isNull()) {
-            throw new IllegalStateException("Missing content in Groq response");
+            throw new IllegalStateException("Missing content in " + provider + " response");
         }
         return content.asText();
-    }
-
-    private String callHf(String prompt) {
-        JsonNode root = webClient.post()
-                .uri(hfUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + hfToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(Map.of("inputs", prompt))
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                .block(timeout);
-        JsonNode text = root == null ? null : root.path(0).path("generated_text");
-        if (text == null || text.isMissingNode() || text.isNull()) {
-            throw new IllegalStateException("Missing generated_text in HF response");
-        }
-        return text.asText();
     }
 }

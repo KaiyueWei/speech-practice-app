@@ -89,10 +89,10 @@ export const createSession = async () => {
     return response.data
 }
 
-export const markSessionRecorded = async (sessionId) => {
+export const markSessionRecorded = async (sessionId, durationSeconds = null) => {
     return await axios.patch(
         `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions/${sessionId}/recorded`,
-        null,
+        { durationSeconds },
         getAuthConfig()
     )
 }

@@ -5,6 +5,7 @@ export function useMediaRecorder({ onStop } = {}) {
   const [permissionError, setPermissionError] = useState(false)
   const recorderRef = useRef(null)
   const chunksRef = useRef([])
+  const startTimeRef = useRef(null)
 
   const start = useCallback(async () => {
     setPermissionError(false)
@@ -29,11 +30,15 @@ export function useMediaRecorder({ onStop } = {}) {
 
     recorder.addEventListener('stop', () => {
       const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      const durationSec = startTimeRef.current
+        ? Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000))
+        : null
       setIsRecording(false)
-      onStop?.(blob)
+      onStop?.(blob, durationSec)
       stream.getTracks().forEach(t => t.stop())
     })
 
+    startTimeRef.current = Date.now()
     recorder.start()
     setIsRecording(true)
   }, [onStop])

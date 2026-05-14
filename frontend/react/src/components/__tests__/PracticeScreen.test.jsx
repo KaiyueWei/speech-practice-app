@@ -99,11 +99,11 @@ describe('PracticeScreen', () => {
 
     const blob = new Blob(['audio'], { type: 'audio/webm' })
     await act(async () => {
-      await mockMediaOnStop(blob)
+      await mockMediaOnStop(blob, 7)
     })
 
     expect(mockUpload).toHaveBeenCalledWith('https://s3/up', blob)
-    expect(mockMarkRecorded).toHaveBeenCalledWith(42)
+    expect(mockMarkRecorded).toHaveBeenCalledWith(42, 7)
   })
 
   it('shows retry button when WS is timed out and clicking it calls retry()', async () => {

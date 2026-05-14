@@ -22,14 +22,14 @@ export default function PracticeScreen({ initialTopics }) {
 
   const { status, feedback, startRecording, stopRecording, setFeedback } = useSessionFlow()
 
-  const handleRecordingFinalized = useCallback(async (blob) => {
+  const handleRecordingFinalized = useCallback(async (blob, durationSec) => {
     stopRecording()
     const uploadUrl = uploadUrlRef.current
     const currentSessionId = sessionIdRef.current
     if (!uploadUrl || !currentSessionId) return
     try {
       await uploadAudioToPresignedUrl(uploadUrl, blob)
-      await markSessionRecorded(currentSessionId)
+      await markSessionRecorded(currentSessionId, durationSec)
     } catch (err) {
       console.error('Failed to upload recording or mark recorded', err)
     }
