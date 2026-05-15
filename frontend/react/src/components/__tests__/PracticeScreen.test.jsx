@@ -26,11 +26,13 @@ let mockStop = vi.fn()
 let mockCreateSession = vi.fn(() => Promise.resolve({ sessionId: 42, uploadUrl: 'https://s3/up' }))
 let mockUpload = vi.fn(() => Promise.resolve())
 let mockMarkRecorded = vi.fn(() => Promise.resolve())
+let mockGetPrompts = vi.fn(() => Promise.resolve(TOPICS))
 
 vi.mock('../../services/client', () => ({
   createSession: (...args) => mockCreateSession(...args),
   uploadAudioToPresignedUrl: (...args) => mockUpload(...args),
   markSessionRecorded: (...args) => mockMarkRecorded(...args),
+  getPrompts: (...args) => mockGetPrompts(...args),
 }))
 
 vi.mock('../../hooks/useMediaRecorder', () => ({
@@ -73,13 +75,38 @@ describe('PracticeScreen', () => {
     mockCreateSession.mockResolvedValue({ sessionId: 42, uploadUrl: 'https://s3/up' })
     mockUpload.mockResolvedValue()
     mockMarkRecorded.mockResolvedValue()
+    mockGetPrompts.mockResolvedValue(TOPICS)
     vi.clearAllMocks()
   })
 
-  it('full flow: spin → topic shown → record clicked → feedback visible after WS message', async () => {
-    const { rerender } = render(<PracticeScreen initialTopics={TOPICS} />)
+  it('fetches prompts for the initial mode on mount and renders the first topic', async () => {
+    render(<PracticeScreen />)
+    await waitFor(() => expect(mockGetPrompts).toHaveBeenCalledWith('IMPROMPTU'))
+    await waitFor(() =>
+      expect(screen.getByText('Describe a challenge you overcame')).toBeInTheDocument(),
+    )
+  })
 
-    await userEvent.click(screen.getByRole('button', { name: /new topic/i }))
+  it('refetches prompts when the user switches mode', async () => {
+    mockGetPrompts.mockResolvedValueOnce(TOPICS)
+    render(<PracticeScreen />)
+    await waitFor(() => expect(mockGetPrompts).toHaveBeenCalledWith('IMPROMPTU'))
+
+    mockGetPrompts.mockResolvedValueOnce([
+      { id: 9, text: 'Should we tax sugar', difficulty: 'hard', category: 'Policy' },
+    ])
+    await userEvent.click(screen.getByRole('tab', { name: 'Debate' }))
+    await waitFor(() => expect(mockGetPrompts).toHaveBeenCalledWith('DEBATE'))
+    await waitFor(() =>
+      expect(screen.getByText('Should we tax sugar')).toBeInTheDocument(),
+    )
+  })
+
+  it('full flow: spin → topic shown → record clicked → feedback visible after WS message', async () => {
+    const { rerender } = render(<PracticeScreen />)
+
+    const spin = await screen.findByRole('button', { name: /new topic/i })
+    await userEvent.click(spin)
     expect(screen.getByTestId('topic-wrapper')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /start recording/i }))
@@ -87,14 +114,15 @@ describe('PracticeScreen', () => {
     expect(mockStart).toHaveBeenCalled()
 
     mockFeedback = mockFeedbackMessage
-    rerender(<PracticeScreen initialTopics={TOPICS} />)
+    rerender(<PracticeScreen />)
 
     expect(screen.getByRole('progressbar', { name: /clarity/i })).toBeInTheDocument()
   })
 
   it('uploads blob and marks recorded after media recorder finalizes', async () => {
-    render(<PracticeScreen initialTopics={TOPICS} />)
-    await userEvent.click(screen.getByRole('button', { name: /start recording/i }))
+    render(<PracticeScreen />)
+    const recordBtn = await screen.findByRole('button', { name: /start recording/i })
+    await userEvent.click(recordBtn)
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalled())
 
     const blob = new Blob(['audio'], { type: 'audio/webm' })
@@ -108,15 +136,15 @@ describe('PracticeScreen', () => {
 
   it('shows retry button when WS is timed out and clicking it calls retry()', async () => {
     mockIsTimedOut = true
-    render(<PracticeScreen initialTopics={TOPICS} />)
-    const button = screen.getByRole('button', { name: /retry/i })
+    render(<PracticeScreen />)
+    const button = await screen.findByRole('button', { name: /retry/i })
     await userEvent.click(button)
     expect(mockRetry).toHaveBeenCalled()
   })
 
   it('shows "Microphone access denied" when permissionError is true', () => {
     mockPermissionError = true
-    render(<PracticeScreen initialTopics={TOPICS} />)
+    render(<PracticeScreen />)
     expect(screen.getByText(/microphone access denied/i)).toBeInTheDocument()
   })
 })

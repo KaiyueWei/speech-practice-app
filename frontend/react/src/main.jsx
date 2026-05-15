@@ -13,12 +13,6 @@ import './index.css'
 
 const { ToastContainer } = createStandaloneToast();
 
-const defaultTopics = [
-    { text: "Introduce yourself", difficulty: "easy", category: "General" },
-    { text: "Describe your biggest challenge", difficulty: "medium", category: "Personal" },
-    { text: "Explain a technical concept", difficulty: "hard", category: "Technical" },
-]
-
 const router = createBrowserRouter([
     {
         path: "/",
@@ -30,7 +24,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/dashboard",
-        element: <ProtectedRoute><PracticeScreen initialTopics={defaultTopics} /></ProtectedRoute>
+        element: <ProtectedRoute><PracticeScreen /></ProtectedRoute>
     }
 ])
 

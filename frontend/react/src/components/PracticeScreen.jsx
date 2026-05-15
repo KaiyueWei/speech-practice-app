@@ -5,6 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket'
 import { useSessionFlow } from '../hooks/useSessionFlow'
 import {
   createSession,
+  getPrompts,
   markSessionRecorded,
   uploadAudioToPresignedUrl,
 } from '../services/client'
@@ -15,13 +16,35 @@ import RecordingSession from './RecordingSession'
 import TranscriptView from './TranscriptView'
 import FeedbackPanel from './FeedbackPanel'
 
-export default function PracticeScreen({ initialTopics }) {
-  const [topics] = useState(initialTopics)
-  const [currentTopic, setCurrentTopic] = useState(topics[0] ?? null)
+export default function PracticeScreen() {
+  const [topics, setTopics] = useState([])
+  const [currentTopic, setCurrentTopic] = useState(null)
   const [sessionId, setSessionId] = useState(null)
   const [mode, setMode] = useState('IMPROMPTU')
+  const [topicsLoading, setTopicsLoading] = useState(false)
   const uploadUrlRef = useRef(null)
   const sessionIdRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setTopicsLoading(true)
+    getPrompts(mode)
+      .then((list) => {
+        if (cancelled) return
+        const safe = Array.isArray(list) ? list : []
+        setTopics(safe)
+        setCurrentTopic(safe[0] ?? null)
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load prompts', err)
+      })
+      .finally(() => {
+        if (!cancelled) setTopicsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mode])
 
   const { status, feedback, startRecording, stopRecording, setFeedback } = useSessionFlow()
 
@@ -98,13 +121,26 @@ export default function PracticeScreen({ initialTopics }) {
     <Box bg="bg" minH="100vh">
       <AppTopBar mode={mode} onModeChange={setMode} />
       <Container maxW="720px" pt="16px" pb="48px">
-        {currentTopic && (
+        {currentTopic ? (
           <TopicCard
             topic={currentTopic.text}
             difficulty={currentTopic.difficulty}
             category={currentTopic.category}
             onSpin={handleSpin}
           />
+        ) : (
+          <Box
+            bg="surface"
+            border="0.5px solid"
+            borderColor="surface3"
+            borderRadius="md"
+            p="16px"
+            mb="12px"
+            color="ink3"
+            fontSize="13px"
+          >
+            {topicsLoading ? 'Loading prompts…' : 'No prompts available for this mode.'}
+          </Box>
         )}
         <FrameworkHints />
         <RecordingSession
