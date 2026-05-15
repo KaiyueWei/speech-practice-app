@@ -1,7 +1,11 @@
-import { render, screen, act, waitFor } from '@testing-library/react'
+import { render as rtlRender, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import PracticeScreen from '../PracticeScreen'
+
+const render = (ui) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
+const rerenderInRouter = (rerender, ui) => rerender(<MemoryRouter>{ui}</MemoryRouter>)
 
 const TOPICS = [
   { id: 1, text: 'Describe a challenge you overcame', difficulty: 'medium', category: 'Resilience' },
@@ -116,7 +120,7 @@ describe('PracticeScreen', () => {
     expect(mockStart).toHaveBeenCalled()
 
     mockFeedback = mockFeedbackMessage
-    rerender(<PracticeScreen />)
+    rerenderInRouter(rerender, <PracticeScreen />)
 
     expect(screen.getByRole('progressbar', { name: /clarity/i })).toBeInTheDocument()
   })

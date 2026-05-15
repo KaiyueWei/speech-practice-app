@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Button, Container, Flex, Text } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
 import { useMediaRecorder } from '../hooks/useMediaRecorder'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { useSessionFlow } from '../hooks/useSessionFlow'
@@ -17,6 +18,7 @@ import TranscriptView from './TranscriptView'
 import FeedbackPanel from './FeedbackPanel'
 
 export default function PracticeScreen() {
+  const navigate = useNavigate()
   const [topics, setTopics] = useState([])
   const [currentTopic, setCurrentTopic] = useState(null)
   const [sessionId, setSessionId] = useState(null)
@@ -24,6 +26,20 @@ export default function PracticeScreen() {
   const [topicsLoading, setTopicsLoading] = useState(false)
   const uploadUrlRef = useRef(null)
   const sessionIdRef = useRef(null)
+
+  const historyLink = (
+    <Box
+      as="button"
+      type="button"
+      onClick={() => navigate('/history')}
+      fontSize="12px"
+      color="ink2"
+      _hover={{ color: 'ink' }}
+      cursor="pointer"
+    >
+      History
+    </Box>
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -99,7 +115,7 @@ export default function PracticeScreen() {
   if (permissionError) {
     return (
       <Box bg="bg" minH="100vh">
-        <AppTopBar mode={mode} onModeChange={setMode} />
+        <AppTopBar mode={mode} onModeChange={setMode} rightSlot={historyLink} />
         <Container maxW="720px" pt="48px">
           <Box
             bg="surface"
@@ -119,7 +135,7 @@ export default function PracticeScreen() {
 
   return (
     <Box bg="bg" minH="100vh">
-      <AppTopBar mode={mode} onModeChange={setMode} />
+      <AppTopBar mode={mode} onModeChange={setMode} rightSlot={historyLink} />
       <Container maxW="720px" pt="16px" pb="48px">
         {currentTopic ? (
           <TopicCard

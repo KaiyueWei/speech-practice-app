@@ -9,6 +9,8 @@ import Signup from "./components/signup/Signup";
 import AuthProvider from "./components/context/AuthContext.jsx";
 import ProtectedRoute from "./components/shared/ProtectedRoute.jsx";
 import PracticeScreen from "./components/PracticeScreen.jsx";
+import HistoryScreen from "./components/history/HistoryScreen.jsx";
+import SessionDetailScreen from "./components/history/SessionDetailScreen.jsx";
 import './index.css'
 
 const { ToastContainer } = createStandaloneToast();
@@ -25,6 +27,14 @@ const router = createBrowserRouter([
     {
         path: "/dashboard",
         element: <ProtectedRoute><PracticeScreen /></ProtectedRoute>
+    },
+    {
+        path: "/history",
+        element: <ProtectedRoute><HistoryScreen /></ProtectedRoute>
+    },
+    {
+        path: "/sessions/:id",
+        element: <ProtectedRoute><SessionDetailScreen /></ProtectedRoute>
     }
 ])
 

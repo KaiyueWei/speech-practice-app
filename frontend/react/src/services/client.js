@@ -91,6 +91,25 @@ export const getPrompts = async (mode) => {
     return response.data
 }
 
+export const getSessions = async ({ page = 0, size = 20 } = {}) => {
+    const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions`,
+        {
+            ...getAuthConfig(),
+            params: { page, size, sort: 'createdAt,desc' },
+        }
+    )
+    return response.data
+}
+
+export const getSessionDetail = async (sessionId) => {
+    const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions/${sessionId}`,
+        getAuthConfig()
+    )
+    return response.data
+}
+
 export const createSession = async () => {
     const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/v1/sessions`,
