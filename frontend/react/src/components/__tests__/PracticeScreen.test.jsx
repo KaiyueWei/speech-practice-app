@@ -10,7 +10,9 @@ const TOPICS = [
 
 const mockFeedbackMessage = {
   transcriptText: 'I um overcame the challenge well',
-  scores: { clarity: 80, pace: 70, structure: 75 },
+  scores: { clarity: 80, structure: 75, delivery: 70 },
+  wpm: 142,
+  fillerWords: { um: 1 },
   bullets: [
     { type: 'positive', text: 'Clear structure' },
     { type: 'tip', text: 'Reduce filler words' },

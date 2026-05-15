@@ -180,7 +180,12 @@ export default function PracticeScreen() {
         )}
         {feedback?.transcriptText && <TranscriptView text={feedback.transcriptText} />}
         {status === 'done' && feedback && (
-          <FeedbackPanel scores={feedback.scores} bullets={feedback.bullets} />
+          <FeedbackPanel
+            scores={feedback.scores}
+            bullets={feedback.bullets}
+            wpm={feedback.wpm}
+            fillerWords={feedback.fillerWords}
+          />
         )}
       </Container>
     </Box>
