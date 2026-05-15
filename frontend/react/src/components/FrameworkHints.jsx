@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, HStack } from '@chakra-ui/react'
 
 const TABS = {
   STAR: {
@@ -19,24 +20,61 @@ const TABS = {
   },
 }
 
+function TabPill({ active, children, onClick }) {
+  return (
+    <Box
+      as="button"
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      onClick={onClick}
+      fontSize="11px"
+      fontFamily="mono"
+      px="10px"
+      py="3px"
+      borderRadius="pill"
+      cursor="pointer"
+      bg={active ? 'purple' : 'surface'}
+      color={active ? 'surface' : 'ink2'}
+      border="0.5px solid"
+      borderColor={active ? 'purple' : 'surface3'}
+      transition="background-color .15s, color .15s"
+    >
+      {children}
+    </Box>
+  )
+}
+
 export default function FrameworkHints() {
   const [active, setActive] = useState('STAR')
 
   return (
-    <div className="framework-hints">
-      <div role="tablist">
-        {Object.keys(TABS).map(key => (
-          <button
+    <Box mb="12px">
+      <HStack as="div" role="tablist" spacing="4px" mb="8px">
+        {Object.keys(TABS).map((key) => (
+          <TabPill
             key={key}
-            role="tab"
-            aria-selected={active === key ? 'true' : 'false'}
+            active={active === key}
             onClick={() => setActive(key)}
           >
             {TABS[key].label}
-          </button>
+          </TabPill>
         ))}
-      </div>
-      <div role="tabpanel">{TABS[active].content}</div>
-    </div>
+      </HStack>
+      <Box
+        role="tabpanel"
+        bg="surface"
+        border="0.5px solid"
+        borderColor="surface3"
+        borderRadius="sm"
+        px="12px"
+        py="10px"
+        fontSize="12px"
+        lineHeight="1.7"
+        color="ink2"
+      >
+        {TABS[active].content}
+      </Box>
+    </Box>
   )
 }

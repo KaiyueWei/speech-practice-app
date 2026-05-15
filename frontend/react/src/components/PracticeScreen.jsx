@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Box, Button, Container, Flex, Text } from '@chakra-ui/react'
 import { useMediaRecorder } from '../hooks/useMediaRecorder'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { useSessionFlow } from '../hooks/useSessionFlow'
@@ -7,6 +8,7 @@ import {
   markSessionRecorded,
   uploadAudioToPresignedUrl,
 } from '../services/client'
+import AppTopBar from './ui/AppTopBar'
 import TopicCard from './TopicCard'
 import FrameworkHints from './FrameworkHints'
 import RecordingSession from './RecordingSession'
@@ -17,6 +19,7 @@ export default function PracticeScreen({ initialTopics }) {
   const [topics] = useState(initialTopics)
   const [currentTopic, setCurrentTopic] = useState(topics[0] ?? null)
   const [sessionId, setSessionId] = useState(null)
+  const [mode, setMode] = useState('IMPROMPTU')
   const uploadUrlRef = useRef(null)
   const sessionIdRef = useRef(null)
 
@@ -71,36 +74,79 @@ export default function PracticeScreen({ initialTopics }) {
   }, [stop])
 
   if (permissionError) {
-    return <div className="permission-error">Microphone access denied</div>
+    return (
+      <Box bg="bg" minH="100vh">
+        <AppTopBar mode={mode} onModeChange={setMode} />
+        <Container maxW="720px" pt="48px">
+          <Box
+            bg="surface"
+            border="0.5px solid"
+            borderColor="surface3"
+            borderRadius="md"
+            p="20px"
+            textAlign="center"
+            color="ink2"
+          >
+            Microphone access denied
+          </Box>
+        </Container>
+      </Box>
+    )
   }
 
   return (
-    <div className="practice-screen">
-      {currentTopic && (
-        <TopicCard
-          topic={currentTopic.text}
-          difficulty={currentTopic.difficulty}
-          category={currentTopic.category}
-          onSpin={handleSpin}
+    <Box bg="bg" minH="100vh">
+      <AppTopBar mode={mode} onModeChange={setMode} />
+      <Container maxW="720px" pt="16px" pb="48px">
+        {currentTopic && (
+          <TopicCard
+            topic={currentTopic.text}
+            difficulty={currentTopic.difficulty}
+            category={currentTopic.category}
+            onSpin={handleSpin}
+          />
+        )}
+        <FrameworkHints />
+        <RecordingSession
+          sessionStatus={status}
+          onRecord={handleRecord}
+          onStop={handleStop}
+          barHeights={Array(80).fill(0)}
         />
-      )}
-      <FrameworkHints />
-      <RecordingSession
-        sessionStatus={status}
-        onRecord={handleRecord}
-        onStop={handleStop}
-        barHeights={Array(80).fill(0)}
-      />
-      {isTimedOut && (
-        <div className="ws-timeout">
-          <span>No feedback received. Connection may be stalled.</span>
-          <button type="button" onClick={retry}>Retry</button>
-        </div>
-      )}
-      {feedback?.transcriptText && <TranscriptView text={feedback.transcriptText} />}
-      {status === 'done' && feedback && (
-        <FeedbackPanel scores={feedback.scores} bullets={feedback.bullets} />
-      )}
-    </div>
+        {isTimedOut && (
+          <Flex
+            bg="surface"
+            border="0.5px solid"
+            borderColor="surface3"
+            borderRadius="md"
+            p="12px"
+            align="center"
+            justify="space-between"
+            gap="12px"
+            mb="12px"
+          >
+            <Text fontSize="13px" color="ink2">
+              No feedback received. Connection may be stalled.
+            </Text>
+            <Button
+              type="button"
+              onClick={retry}
+              size="sm"
+              bg="ink"
+              color="surface"
+              borderRadius="pill"
+              fontSize="12px"
+              _hover={{ opacity: 0.85 }}
+            >
+              Retry
+            </Button>
+          </Flex>
+        )}
+        {feedback?.transcriptText && <TranscriptView text={feedback.transcriptText} />}
+        {status === 'done' && feedback && (
+          <FeedbackPanel scores={feedback.scores} bullets={feedback.bullets} />
+        )}
+      </Container>
+    </Box>
   )
 }
