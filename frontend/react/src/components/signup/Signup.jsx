@@ -1,7 +1,7 @@
 import {useAuth} from "../context/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
 import {useEffect} from "react";
-import {Flex, Heading, Image, Link, Stack, Text} from "@chakra-ui/react";
+import {Flex, Heading, Link, Stack, Text} from "@chakra-ui/react";
 import CreateCustomerForm from "../shared/CreateCustomerForm.jsx";
 
 const Signup = () => {
@@ -10,28 +10,39 @@ const Signup = () => {
 
     useEffect(() => {
         if (customer) {
-            navigate("/dashboard/customers");
+            navigate("/dashboard");
         }
     })
 
     return (
-        <Stack minH={'100vh'} direction={{base: 'column', md: 'row'}}>
+        <Stack minH={'100vh'} direction={{base: 'column', md: 'row'}} bg={'bg'}>
             <Flex p={8} flex={1} alignItems={'center'} justifyContent={'center'}>
-                <Stack spacing={4} w={'full'} maxW={'md'}>
-                    <Image
-                        src={"https://user-images.githubusercontent.com/40702606/210880158-e7d698c2-b19a-4057-b415-09f48a746753.png"}
-                        boxSize={"200px"}
-                        alt={"Amigoscode Logo"}
+                <Stack spacing={6} w={'full'} maxW={'md'}>
+                    <Heading
+                        fontFamily={'heading'}
+                        fontSize={'4xl'}
+                        fontWeight={'normal'}
+                        color={'ink'}
                         alignSelf={"center"}
-                    />
-                    <Heading fontSize={'2xl'} mb={15}>Register for an account</Heading>
+                    >
+                        speak<Text as="span" color={'accent'}>.</Text>practice
+                    </Heading>
+                    <Heading
+                        fontFamily={'body'}
+                        fontSize={'xl'}
+                        fontWeight={'medium'}
+                        color={'ink'}
+                        mt={4}
+                    >
+                        Create your account
+                    </Heading>
                     <CreateCustomerForm onSuccess={(token) => {
                         localStorage.setItem("access_token", token)
                         setCustomerFromToken()
                         navigate("/dashboard");
                     }}/>
-                    <Link color={"blue.500"} href={"/"}>
-                        Have an account? Login now.
+                    <Link color={'accent'} href={"/"} fontSize={'sm'}>
+                        Already have an account? Sign in.
                     </Link>
                 </Stack>
             </Flex>
@@ -41,20 +52,23 @@ const Signup = () => {
                 flexDirection={"column"}
                 alignItems={"center"}
                 justifyContent={"center"}
-                bgGradient={{sm: 'linear(to-r, blue.600, purple.600)'}}
+                bg={'ink'}
+                display={{base: 'none', md: 'flex'}}
             >
-                <Text fontSize={"6xl"} color={'white'} fontWeight={"bold"} mb={5}>
-                    <Link target={"_blank"} href={"https://amigoscode.com/courses"}>
-                        Enrol Now
-                    </Link>
+                <Heading
+                    fontFamily={'heading'}
+                    fontSize={'5xl'}
+                    fontWeight={'normal'}
+                    color={'bg'}
+                    mb={4}
+                    textAlign={'center'}
+                    lineHeight={1.1}
+                >
+                    Start where you <Text as="span" color={'accent'}>are.</Text>
+                </Heading>
+                <Text fontSize={'md'} color={'ink4'} textAlign={"center"} maxW={'sm'}>
+                    Real-time AI feedback on every session — clarity, structure, and delivery, scored instantly.
                 </Text>
-                <Image
-                    alt={'Login Image'}
-                    objectFit={'scale-down'}
-                    src={
-                        'https://user-images.githubusercontent.com/40702606/215539167-d7006790-b880-4929-83fb-c43fa74f429e.png'
-                    }
-                />
             </Flex>
         </Stack>
     );
